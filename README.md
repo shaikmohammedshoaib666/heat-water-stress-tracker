@@ -214,7 +214,7 @@ sam local start-api
 ### 1. **Triple Data Input Modes**
 - **Manual Input**: Enter temperature, humidity, precipitation, and water usage manually
 - **Location-based**: Enter latitude/longitude coordinates for automatic weather data fetching
-- **Auto-detect**: One-click location detection using IP geolocation (zero manual input!)
+- **Quick City Selection**: Choose from 10 popular cities worldwide for instant, accurate location
 
 ### 2. **Real-time Weather Integration**
 - Fetches current weather data from OpenWeatherMap API
@@ -244,12 +244,12 @@ sam local start-api
 - Water conservation measures
 - Emergency protocol triggers
 
-### 7. **Automatic Location Detection** ⭐ NEW
-- One-click IP-based geolocation
-- Uses multiple free geolocation APIs
-- Auto-fills latitude/longitude
-- Displays detected city and country
-- Zero manual input required
+### 7. **Popular Cities Quick Selection** ⭐ NEW
+- Pre-loaded 10 major cities worldwide
+- Includes major Indian cities (Vijayawada, Hyderabad, Chennai, etc.)
+- One-click accurate location selection
+- Instant coordinate population
+- No manual input or inaccurate IP detection
 
 ## 📊 Risk Calculation Logic
 
@@ -285,8 +285,9 @@ For the hackathon submission, demonstrate:
 2. **Application Demo** (90 seconds)
    - Open Streamlit app
    - **Manual Mode**: Input sample environmental data (35°C, 70% humidity)
-   - **Location Mode**: Click "Auto-detect My Location" button
-   - Show automatic location detection with city/country
+   - **Location Mode**: Select "Vijayawada, India" from popular cities dropdown
+   - Show coordinates auto-filled instantly
+   - Click "Calculate Risk Score"
    - Show real-time weather data fetching
    - Display risk calculation with gauge chart
    - Show 3-day forecast visualization
@@ -318,7 +319,7 @@ Unlike static calculators, this system fetches live weather data from OpenWeathe
 ### 2. **Triple Operation Modes**
 - **Demo Mode**: Works without any external dependencies or API keys
 - **Production Mode**: Full AWS integration with real data and S3 storage
-- **Auto-detect Mode**: One-click location detection for zero-input usage
+- **Quick City Mode**: One-click city selection for instant, accurate location
 
 ### 3. **Serverless Architecture**
 AWS Lambda provides automatic scaling, zero maintenance, and pay-per-use pricing - perfect for hackathon demonstration and real-world deployment.
