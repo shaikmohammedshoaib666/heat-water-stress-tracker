@@ -116,33 +116,6 @@ if data_source == "Manual Input":
 
     if auto_fill_manual:
         with st.spinner("Fetching your location and weather data..."):
-            # Try to get location via GPS
-            location_script = """
-            <div id="manual-location-result"></div>
-            <script>
-            function getManualLocation() {
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        function(position) {
-                            const lat = position.coords.latitude;
-                            const lon = position.coords.longitude;
-                            document.getElementById("manual-location-result").innerHTML =
-                                '<input type="hidden" id="manual-lat" value="' + lat + '">' +
-                                '<input type="hidden" id="manual-lon" value="' + lon + '">';
-                        },
-                        function(error) {
-                            document.getElementById("manual-location-result").innerHTML =
-                                '<input type="hidden" id="manual-lat" value="">' +
-                                '<input type="hidden" id="manual-lon" value="">';
-                        }
-                    );
-                }
-            }
-            getManualLocation();
-            </script>
-            """
-            st.components.v1.html(location_script, height=0)
-
             # Use default location (Vijayawada) for demo
             lat = 16.5062
             lon = 80.6480
@@ -156,10 +129,10 @@ if data_source == "Manual Input":
                 st.session_state['manual_defaults'] = {
                     'temperature': risk_data['temperature'],
                     'humidity': risk_data['humidity'],
-                    'precipitation': 100,  # Default for demo
-                    'water_usage': 150   # Default for demo
+                    'precipitation': 50,  # Daily rainfall (mm)
+                    'water_usage': 150   # Daily household usage (liters)
                 }
-                st.success("✅ Weather data auto-filled! You can adjust values below.")
+                st.success("✅ Weather data auto-filled! Temperature and humidity are real values. Precipitation and water usage are set to typical daily averages.")
 
     col1, col2 = st.columns(2)
 
@@ -179,16 +152,16 @@ if data_source == "Manual Input":
 
     with col2:
         precipitation = st.slider(
-            "Precipitation (mm)",
-            0, 500,
+            "Daily Precipitation (mm)",
+            0, 200,
             int(st.session_state['manual_defaults']['precipitation']),
-            help="Rainfall in millimeters (0 = no rain, 100+ = heavy rain)"
+            help="Today's rainfall in millimeters (0 = no rain, 10 = light rain, 50+ = heavy rain). Annual avg: Vijayawada ~1000mm/year"
         )
         water_usage = st.slider(
-            "Water Usage (units)",
+            "Daily Water Usage (liters)",
             0, 500,
             int(st.session_state['manual_defaults']['water_usage']),
-            help="Daily water consumption (100-200 = average household)"
+            help="Daily household water consumption in liters (150 = avg person, 300-400 = avg family)"
         )
 
     event_data = {
@@ -293,8 +266,16 @@ else:
 
     with col2:
         st.info("💡 Get coordinates from Google Maps: Right-click location → Copy coordinates")
-        precipitation = st.slider("Precipitation (mm)", 0, 500, 100, help="Manual input for water stress calculation")
-        water_usage = st.slider("Water Usage (units)", 0, 500, 150, help="Manual input for water stress calculation")
+        precipitation = st.slider(
+            "Daily Precipitation (mm)",
+            0, 200, 100,
+            help="Today's rainfall in millimeters (0 = no rain, 10 = light rain, 50+ = heavy rain). Annual avg: Vijayawada ~1000mm/year"
+        )
+        water_usage = st.slider(
+            "Daily Water Usage (liters)",
+            0, 500, 150,
+            help="Daily household water consumption in liters (150 = avg person, 300-400 = avg family)"
+        )
 
     event_data = {
         'lat': lat,
