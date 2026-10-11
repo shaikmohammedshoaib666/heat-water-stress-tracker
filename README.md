@@ -211,9 +211,10 @@ sam local start-api
 
 ## ✨ Key Features
 
-### 1. **Dual Data Input Modes**
+### 1. **Triple Data Input Modes**
 - **Manual Input**: Enter temperature, humidity, precipitation, and water usage manually
 - **Location-based**: Enter latitude/longitude coordinates for automatic weather data fetching
+- **Auto-detect**: One-click location detection using IP geolocation (zero manual input!)
 
 ### 2. **Real-time Weather Integration**
 - Fetches current weather data from OpenWeatherMap API
@@ -242,6 +243,13 @@ sam local start-api
 - Heat stress mitigation strategies
 - Water conservation measures
 - Emergency protocol triggers
+
+### 7. **Automatic Location Detection** ⭐ NEW
+- One-click IP-based geolocation
+- Uses multiple free geolocation APIs
+- Auto-fills latitude/longitude
+- Displays detected city and country
+- Zero manual input required
 
 ## 📊 Risk Calculation Logic
 
@@ -277,7 +285,8 @@ For the hackathon submission, demonstrate:
 2. **Application Demo** (90 seconds)
    - Open Streamlit app
    - **Manual Mode**: Input sample environmental data (35°C, 70% humidity)
-   - **Location Mode**: Enter coordinates for New Delhi (28.6139, 77.2090)
+   - **Location Mode**: Click "Auto-detect My Location" button
+   - Show automatic location detection with city/country
    - Show real-time weather data fetching
    - Display risk calculation with gauge chart
    - Show 3-day forecast visualization
@@ -306,9 +315,10 @@ For the hackathon submission, demonstrate:
 ### 1. **Real-time Data Integration**
 Unlike static calculators, this system fetches live weather data from OpenWeatherMap API, providing up-to-date risk assessments for any global location.
 
-### 2. **Dual Operation Modes**
+### 2. **Triple Operation Modes**
 - **Demo Mode**: Works without any external dependencies or API keys
 - **Production Mode**: Full AWS integration with real data and S3 storage
+- **Auto-detect Mode**: One-click location detection for zero-input usage
 
 ### 3. **Serverless Architecture**
 AWS Lambda provides automatic scaling, zero maintenance, and pay-per-use pricing - perfect for hackathon demonstration and real-world deployment.
