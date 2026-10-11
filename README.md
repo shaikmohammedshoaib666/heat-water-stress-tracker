@@ -211,10 +211,11 @@ sam local start-api
 
 ## ✨ Key Features
 
-### 1. **Triple Data Input Modes**
-- **Manual Input**: Enter temperature, humidity, precipitation, and water usage manually
-- **Location-based**: Enter latitude/longitude coordinates for automatic weather data fetching
+### 1. **Smart Data Input Modes**
+- **Manual Input with Auto-detect**: Click button to auto-fill real weather data, then adjust as needed
+- **Location-based**: Enter coordinates or use browser GPS for automatic weather data fetching
 - **Quick City Selection**: Choose from 10 popular cities worldwide for instant, accurate location
+- **User-friendly descriptions**: Each slider explains what the metric means in plain language
 
 ### 2. **Real-time Weather Integration**
 - Fetches current weather data from OpenWeatherMap API
@@ -244,12 +245,22 @@ sam local start-api
 - Water conservation measures
 - Emergency protocol triggers
 
-### 7. **Popular Cities Quick Selection** ⭐ NEW
+### 7. **Popular Cities Quick Selection**
 - Pre-loaded 10 major cities worldwide
 - Includes major Indian cities (Vijayawada, Hyderabad, Chennai, etc.)
 - One-click accurate location selection
 - Instant coordinate population
 - No manual input or inaccurate IP detection
+
+### 8. **User-Friendly Manual Input** ⭐ NEW
+- Auto-detect button fills real weather data automatically
+- Plain language descriptions for each metric:
+  - Temperature: "Current air temperature in your area"
+  - Humidity: "Amount of moisture in the air (higher = more humid)"
+  - Precipitation: "Rainfall in millimeters (0 = no rain, 100+ = heavy rain)"
+  - Water Usage: "Daily water consumption (100-200 = average household)"
+- Users can adjust values after auto-fill
+- No technical knowledge required
 
 ## 📊 Risk Calculation Logic
 
@@ -284,8 +295,10 @@ For the hackathon submission, demonstrate:
 
 2. **Application Demo** (90 seconds)
    - Open Streamlit app
-   - **Manual Mode**: Input sample environmental data (35°C, 70% humidity)
-   - **Location Mode**: Select "Vijayawada, India" from popular cities dropdown
+   - **Manual Mode**: Click "Auto-detect & Fill" button
+   - Show temperature and humidity auto-filled from real weather
+   - Adjust values if needed (user-friendly descriptions shown)
+   - **Location Mode**: Select "Vijayawada, India" from dropdown
    - Show coordinates auto-filled instantly
    - Click "Calculate Risk Score"
    - Show real-time weather data fetching
