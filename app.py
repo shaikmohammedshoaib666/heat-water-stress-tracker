@@ -1,11 +1,13 @@
 import streamlit as st
 import json
 import sys
+import os
 import plotly.graph_objects as go
 import plotly.express as px
 from datetime import datetime
 
-sys.path.insert(0, 'lambda')
+# Add lambda directory to path for imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'lambda'))
 from app import lambda_handler
 
 st.set_page_config(

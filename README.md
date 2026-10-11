@@ -127,6 +127,55 @@ The app will open at `http://localhost:8501`
 - Enter it in the app sidebar for real weather data
 - Without API key, the app uses demo mode with simulated data
 
+## 🌐 Streamlit Cloud Deployment
+
+### Quick Deploy (5 minutes)
+
+1. **Ensure code is on GitHub**
+   - Repository: https://github.com/shaikmohammedshoaib666/heat-water-stress-tracker
+   - Code is already pushed and ready!
+
+2. **Deploy to Streamlit Cloud**
+   - Visit https://share.streamlit.io
+   - Click "New app"
+   - Select your repository: `shaikmohammedshoaib666/heat-water-stress-tracker`
+   - Main file: `app.py`
+   - Click "Deploy"
+
+3. **That's it!**
+   - Streamlit Cloud will automatically:
+     - Install dependencies from `requirements.txt`
+     - Run the app
+     - Provide a public URL
+     - Handle HTTPS and scaling
+
+### Your App URL
+
+After deployment, your app will be available at:
+`https://shaikmohammedshoaib666-heat-water-stress-tracker-app.streamlit.app`
+
+### AWS Integration on Streamlit Cloud
+
+The app works perfectly on Streamlit Cloud because:
+- Lambda functions run locally (Python import)
+- Weather API calls work from any environment
+- S3 integration has local fallback mode
+- No AWS credentials required for demo mode
+
+### For Full AWS Integration (Optional)
+
+If you want to use real AWS S3 on Streamlit Cloud:
+1. Add AWS credentials as Streamlit Cloud secrets:
+   - In Streamlit Cloud app settings → Secrets
+   - Add:
+     ```
+     AWS_ACCESS_KEY_ID=your_key
+     AWS_SECRET_ACCESS_KEY=your_secret
+     AWS_REGION=us-east-1
+     S3_BUCKET_NAME=your_bucket
+     ```
+2. The app will automatically use real S3 instead of local storage
+
 ## 🧪 Testing Lambda Function
 
 ### Direct Python Testing (Quick Start)
