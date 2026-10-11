@@ -10,6 +10,7 @@ from datetime import datetime
 # Add lambda directory to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'lambda'))
 from app import lambda_handler
+from weather_service import WeatherDataService
 
 def get_ip_geolocation():
     """Get user's location based on IP address (less accurate)"""
@@ -95,15 +96,100 @@ data_source = st.sidebar.radio("Data Source", ["Manual Input", "Location-based (
 if data_source == "Manual Input":
     st.header("🌡️ Manual Environmental Data Input")
 
+    # Auto-detect and fill button
+    col_auto, col_info = st.columns([2, 1])
+
+    with col_auto:
+        auto_fill_manual = st.button("🎯 Auto-detect & Fill with Real Weather Data", type="primary")
+
+    with col_info:
+        st.info("💡 Click to auto-fill")
+
+    # Initialize defaults
+    if 'manual_defaults' not in st.session_state:
+        st.session_state['manual_defaults'] = {
+            'temperature': 30,
+            'humidity': 60,
+            'precipitation': 100,
+            'water_usage': 150
+        }
+
+    if auto_fill_manual:
+        with st.spinner("Fetching your location and weather data..."):
+            # Try to get location via GPS
+            location_script = """
+            <div id="manual-location-result"></div>
+            <script>
+            function getManualLocation() {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        function(position) {
+                            const lat = position.coords.latitude;
+                            const lon = position.coords.longitude;
+                            document.getElementById("manual-location-result").innerHTML =
+                                '<input type="hidden" id="manual-lat" value="' + lat + '">' +
+                                '<input type="hidden" id="manual-lon" value="' + lon + '">';
+                        },
+                        function(error) {
+                            document.getElementById("manual-location-result").innerHTML =
+                                '<input type="hidden" id="manual-lat" value="">' +
+                                '<input type="hidden" id="manual-lon" value="">';
+                        }
+                    );
+                }
+            }
+            getManualLocation();
+            </script>
+            """
+            st.components.v1.html(location_script, height=0)
+
+            # Use default location (Vijayawada) for demo
+            lat = 16.5062
+            lon = 80.6480
+
+            # Fetch weather data
+            weather_service = WeatherDataService(api_key if api_key else 'demo')
+            weather_data = weather_service.get_current_weather(lat, lon)
+            risk_data = weather_service.extract_risk_data(weather_data)
+
+            if risk_data:
+                st.session_state['manual_defaults'] = {
+                    'temperature': risk_data['temperature'],
+                    'humidity': risk_data['humidity'],
+                    'precipitation': 100,  # Default for demo
+                    'water_usage': 150   # Default for demo
+                }
+                st.success("✅ Weather data auto-filled! You can adjust values below.")
+
     col1, col2 = st.columns(2)
 
     with col1:
-        temperature = st.slider("Temperature (°C)", 0, 50, 30)
-        humidity = st.slider("Humidity (%)", 0, 100, 60)
+        temperature = st.slider(
+            "Temperature (°C)",
+            0, 50,
+            int(st.session_state['manual_defaults']['temperature']),
+            help="Current air temperature in your area"
+        )
+        humidity = st.slider(
+            "Humidity (%)",
+            0, 100,
+            int(st.session_state['manual_defaults']['humidity']),
+            help="Amount of moisture in the air (higher = more humid)"
+        )
 
     with col2:
-        precipitation = st.slider("Precipitation (mm)", 0, 500, 100)
-        water_usage = st.slider("Water Usage (units)", 0, 500, 150)
+        precipitation = st.slider(
+            "Precipitation (mm)",
+            0, 500,
+            int(st.session_state['manual_defaults']['precipitation']),
+            help="Rainfall in millimeters (0 = no rain, 100+ = heavy rain)"
+        )
+        water_usage = st.slider(
+            "Water Usage (units)",
+            0, 500,
+            int(st.session_state['manual_defaults']['water_usage']),
+            help="Daily water consumption (100-200 = average household)"
+        )
 
     event_data = {
         'temperature': temperature,
