@@ -2,6 +2,7 @@ import streamlit as st
 import json
 import sys
 import os
+import requests
 import plotly.graph_objects as go
 import plotly.express as px
 from datetime import datetime
@@ -9,6 +10,54 @@ from datetime import datetime
 # Add lambda directory to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'lambda'))
 from app import lambda_handler
+
+def get_ip_geolocation():
+    """Get user's location based on IP address"""
+    try:
+        # Try multiple free IP geolocation APIs
+        apis = [
+            'http://ip-api.com/json/',
+            'https://ipapi.co/json/',
+            'https://ipinfo.io/json'
+        ]
+
+        for api in apis:
+            try:
+                response = requests.get(api, timeout=3)
+                if response.status_code == 200:
+                    data = response.json()
+                    # Handle different API response formats
+                    if 'lat' in data and 'lon' in data:
+                        # ip-api.com format
+                        return {
+                            'lat': data.get('lat'),
+                            'lon': data.get('lon'),
+                            'city': data.get('city'),
+                            'country': data.get('country')
+                        }
+                    elif 'latitude' in data:
+                        # ipapi.co format
+                        return {
+                            'lat': data.get('latitude'),
+                            'lon': data.get('longitude'),
+                            'city': data.get('city'),
+                            'country': data.get('country_name') or data.get('country')
+                        }
+                    elif 'loc' in data:
+                        # ipinfo.io format
+                        lat, lon = data['loc'].split(',')
+                        return {
+                            'lat': float(lat),
+                            'lon': float(lon),
+                            'city': data.get('city'),
+                            'country': data.get('country')
+                        }
+            except:
+                continue
+
+    except Exception as e:
+        st.warning(f"Could not auto-detect location: {e}")
+    return None
 
 st.set_page_config(
     page_title="Heat & Water Stress Tracker",
@@ -56,11 +105,34 @@ if data_source == "Manual Input":
 else:
     st.header("📍 Location-based Weather Data")
 
+    # Auto-detect location button
+    col_detect, col_info = st.columns([2, 1])
+
+    with col_detect:
+        auto_detect = st.button("🎯 Auto-detect My Location", type="secondary")
+
+    with col_info:
+        st.info("💡 Uses your IP address")
+
+    location_data = None
+    default_lat = 28.6139
+    default_lon = 77.2090
+
+    if auto_detect:
+        with st.spinner("Detecting your location..."):
+            location_data = get_ip_geolocation()
+            if location_data:
+                st.success(f"✅ Location detected: {location_data.get('city', 'Unknown')}, {location_data.get('country', 'Unknown')}")
+                default_lat = location_data['lat'] or 28.6139
+                default_lon = location_data['lon'] or 77.2090
+            else:
+                st.warning("Could not auto-detect. Using default location.")
+
     col1, col2 = st.columns(2)
 
     with col1:
-        lat = st.number_input("Latitude", value=28.6139, format="%.4f", help="Example: 28.6139 for New Delhi")
-        lon = st.number_input("Longitude", value=77.2090, format="%.4f", help="Example: 77.2090 for New Delhi")
+        lat = st.number_input("Latitude", value=default_lat, format="%.4f", help="Example: 28.6139 for New Delhi")
+        lon = st.number_input("Longitude", value=default_lon, format="%.4f", help="Example: 77.2090 for New Delhi")
 
     with col2:
         st.info("💡 Get coordinates from Google Maps: Right-click location → Copy coordinates")
@@ -74,6 +146,10 @@ else:
         'water_usage': water_usage,
         'api_key': api_key if api_key else 'demo'
     }
+
+    # Show location info if auto-detected
+    if auto_detect and location_data:
+        st.info(f"📍 Using your detected location: {location_data.get('city', 'Unknown')}, {location_data.get('country', 'Unknown')}")
 
 # Calculate button
 if st.button("🚀 Calculate Risk Score", type="primary", use_container_width=True):
