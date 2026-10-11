@@ -108,6 +108,9 @@ if data_source == "Manual Input":
 else:
     st.header("📍 Location-based Weather Data")
 
+    # Warning for cloud deployment
+    st.error("⚠️ **On Streamlit Cloud**: IP detection shows the server location (Dallas, USA), not yours. Please use the **Popular Cities Dropdown** below for accurate results!")
+
     # Popular cities dropdown
     popular_cities = {
         "New Delhi, India": (28.6139, 77.2090),
@@ -122,23 +125,24 @@ else:
         "Sydney, Australia": (-33.8688, 151.2093)
     }
 
-    selected_city = st.selectbox("🏙️ Quick Select Popular City", ["-- Select a city --"] + list(popular_cities.keys()))
+    selected_city = st.selectbox("🏙️ Quick Select Popular City (Recommended)", ["-- Select a city --"] + list(popular_cities.keys()))
 
     if selected_city != "-- Select a city --":
         default_lat, default_lon = popular_cities[selected_city]
-        st.info(f"✅ Selected: {selected_city}")
+        st.success(f"✅ Selected: {selected_city}")
     else:
         default_lat = 28.6139
         default_lon = 77.2090
 
     # Auto-detect location button (with disclaimer)
+    st.subheader("Alternative: IP-based Detection")
     col_detect, col_info = st.columns([2, 1])
 
     with col_detect:
         auto_detect = st.button("🎯 Auto-detect via IP (Approximate)", type="secondary")
 
     with col_info:
-        st.info("⚠️ May be inaccurate")
+        st.info("⚠️ Not recommended on Cloud")
 
     location_data = None
 
@@ -147,8 +151,9 @@ else:
             location_data = get_ip_geolocation()
             if location_data:
                 method = location_data.get('method', 'IP-based')
-                st.warning(f"⚠️ IP-based detection is approximate. Detected: {location_data.get('city', 'Unknown')}, {location_data.get('country', 'Unknown')}")
-                st.info("💡 For accurate location, use the popular cities dropdown or enter coordinates manually")
+                st.error(f"⚠️ This shows the Streamlit Cloud server location (Dallas, USA), not yours!")
+                st.warning(f"Detected: {location_data.get('city', 'Unknown')}, {location_data.get('country', 'Unknown')}")
+                st.info("💡 Please use the Popular Cities Dropdown above for accurate results")
                 default_lat = location_data['lat'] or 28.6139
                 default_lon = location_data['lon'] or 77.2090
             else:
