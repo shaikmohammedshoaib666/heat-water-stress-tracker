@@ -1,0 +1,20 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Heat & Water Stress Risk Calculator
+
+Globals:
+  Function:
+    Timeout: 10
+    Runtime: python3.9
+    Handler: app.lambda_handler
+
+Resources:
+  HeatWaterStressFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lambda/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Environment:
+        Variables:
+          ENVIRONMENT: local

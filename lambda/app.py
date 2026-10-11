@@ -1,0 +1,102 @@
+import json
+
+def calculate_heat_stress(temperature, humidity):
+    """Calculate heat stress index based on temperature and humidity"""
+    # Simplified heat index calculation
+    if temperature < 27:
+        return "Low"
+    elif temperature < 32:
+        if humidity > 60:
+            return "High"
+        return "Moderate"
+    else:
+        if humidity > 50:
+            return "Critical"
+        return "High"
+
+def calculate_water_stress(precipitation, water_usage):
+    """Calculate water stress based on precipitation and usage"""
+    # Water stress ratio
+    stress_ratio = water_usage / (precipitation + 1)
+    if stress_ratio < 0.5:
+        return "Low"
+    elif stress_ratio < 1.0:
+        return "Moderate"
+    elif stress_ratio < 2.0:
+        return "High"
+    return "Critical"
+
+def calculate_overall_risk(heat_stress, water_stress):
+    """Calculate overall environmental risk score (0-100)"""
+    stress_levels = {"Low": 1, "Moderate": 2, "High": 3, "Critical": 4}
+    heat_score = stress_levels.get(heat_stress, 2) * 25
+    water_score = stress_levels.get(water_stress, 2) * 25
+    return min(heat_score + water_score, 100)
+
+def generate_recommendations(heat_stress, water_stress, overall_risk):
+    """Generate actionable recommendations based on stress levels"""
+    recommendations = []
+
+    if heat_stress in ["High", "Critical"]:
+        recommendations.extend([
+            "Implement heat warning systems",
+            "Increase green spaces and shade",
+            "Establish cooling centers"
+        ])
+
+    if water_stress in ["High", "Critical"]:
+        recommendations.extend([
+            "Implement water conservation measures",
+            "Invest in water recycling systems",
+            "Monitor groundwater levels regularly"
+        ])
+
+    if overall_risk >= 75:
+        recommendations.append("Urgent: Declare environmental emergency protocol")
+
+    if not recommendations:
+        recommendations.append("Continue monitoring environmental conditions")
+
+    return recommendations
+
+def lambda_handler(event, context):
+    """AWS Lambda handler for heat and water stress calculation"""
+    try:
+        # Parse input data
+        body = event if isinstance(event, dict) else json.loads(event)
+        temperature = body.get('temperature', 30)
+        humidity = body.get('humidity', 60)
+        precipitation = body.get('precipitation', 100)
+        water_usage = body.get('water_usage', 150)
+
+        # Calculate stress levels
+        heat_stress = calculate_heat_stress(temperature, humidity)
+        water_stress = calculate_water_stress(precipitation, water_usage)
+        overall_risk = calculate_overall_risk(heat_stress, water_stress)
+        recommendations = generate_recommendations(heat_stress, water_stress, overall_risk)
+
+        # Return results
+        response = {
+            'statusCode': 200,
+            'body': json.dumps({
+                'heat_stress': heat_stress,
+                'water_stress': water_stress,
+                'overall_risk_score': overall_risk,
+                'risk_level': 'Critical' if overall_risk >= 75 else 'High' if overall_risk >= 50 else 'Moderate' if overall_risk >= 25 else 'Low',
+                'recommendations': recommendations,
+                'input_data': {
+                    'temperature': temperature,
+                    'humidity': humidity,
+                    'precipitation': precipitation,
+                    'water_usage': water_usage
+                }
+            })
+        }
+
+        return response
+
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'body': json.dumps({'error': str(e)})
+        }
