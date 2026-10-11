@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'lambda'))
 from app import lambda_handler
 
 def get_ip_geolocation():
-    """Get user's location based on IP address"""
+    """Get user's location based on IP address (less accurate)"""
     try:
         # Try multiple free IP geolocation APIs
         apis = [
@@ -33,7 +33,8 @@ def get_ip_geolocation():
                             'lat': data.get('lat'),
                             'lon': data.get('lon'),
                             'city': data.get('city'),
-                            'country': data.get('country')
+                            'country': data.get('country'),
+                            'method': 'IP-based (approximate)'
                         }
                     elif 'latitude' in data:
                         # ipapi.co format
@@ -41,7 +42,8 @@ def get_ip_geolocation():
                             'lat': data.get('latitude'),
                             'lon': data.get('longitude'),
                             'city': data.get('city'),
-                            'country': data.get('country_name') or data.get('country')
+                            'country': data.get('country_name') or data.get('country'),
+                            'method': 'IP-based (approximate)'
                         }
                     elif 'loc' in data:
                         # ipinfo.io format
@@ -50,7 +52,8 @@ def get_ip_geolocation():
                             'lat': float(lat),
                             'lon': float(lon),
                             'city': data.get('city'),
-                            'country': data.get('country')
+                            'country': data.get('country'),
+                            'method': 'IP-based (approximate)'
                         }
             except:
                 continue
@@ -105,24 +108,47 @@ if data_source == "Manual Input":
 else:
     st.header("📍 Location-based Weather Data")
 
-    # Auto-detect location button
+    # Popular cities dropdown
+    popular_cities = {
+        "New Delhi, India": (28.6139, 77.2090),
+        "Mumbai, India": (19.0760, 72.8777),
+        "Vijayawada, India": (16.5062, 80.6480),
+        "Hyderabad, India": (17.3850, 78.4867),
+        "Chennai, India": (13.0827, 80.2707),
+        "Bangalore, India": (12.9716, 77.5946),
+        "New York, USA": (40.7128, -74.0060),
+        "London, UK": (51.5074, -0.1278),
+        "Tokyo, Japan": (35.6762, 139.6503),
+        "Sydney, Australia": (-33.8688, 151.2093)
+    }
+
+    selected_city = st.selectbox("🏙️ Quick Select Popular City", ["-- Select a city --"] + list(popular_cities.keys()))
+
+    if selected_city != "-- Select a city --":
+        default_lat, default_lon = popular_cities[selected_city]
+        st.info(f"✅ Selected: {selected_city}")
+    else:
+        default_lat = 28.6139
+        default_lon = 77.2090
+
+    # Auto-detect location button (with disclaimer)
     col_detect, col_info = st.columns([2, 1])
 
     with col_detect:
-        auto_detect = st.button("🎯 Auto-detect My Location", type="secondary")
+        auto_detect = st.button("🎯 Auto-detect via IP (Approximate)", type="secondary")
 
     with col_info:
-        st.info("💡 Uses your IP address")
+        st.info("⚠️ May be inaccurate")
 
     location_data = None
-    default_lat = 28.6139
-    default_lon = 77.2090
 
     if auto_detect:
-        with st.spinner("Detecting your location..."):
+        with st.spinner("Detecting your location via IP..."):
             location_data = get_ip_geolocation()
             if location_data:
-                st.success(f"✅ Location detected: {location_data.get('city', 'Unknown')}, {location_data.get('country', 'Unknown')}")
+                method = location_data.get('method', 'IP-based')
+                st.warning(f"⚠️ IP-based detection is approximate. Detected: {location_data.get('city', 'Unknown')}, {location_data.get('country', 'Unknown')}")
+                st.info("💡 For accurate location, use the popular cities dropdown or enter coordinates manually")
                 default_lat = location_data['lat'] or 28.6139
                 default_lon = location_data['lon'] or 77.2090
             else:
@@ -147,9 +173,11 @@ else:
         'api_key': api_key if api_key else 'demo'
     }
 
-    # Show location info if auto-detected
-    if auto_detect and location_data:
-        st.info(f"📍 Using your detected location: {location_data.get('city', 'Unknown')}, {location_data.get('country', 'Unknown')}")
+    # Show location info
+    if selected_city != "-- Select a city --":
+        st.info(f"📍 Using selected city: {selected_city}")
+    elif auto_detect and location_data:
+        st.info(f"📍 Using IP-detected location: {location_data.get('city', 'Unknown')}, {location_data.get('country', 'Unknown')}")
 
 # Calculate button
 if st.button("🚀 Calculate Risk Score", type="primary", use_container_width=True):
