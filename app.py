@@ -62,6 +62,14 @@ def get_ip_geolocation():
         st.warning(f"Could not auto-detect location: {e}")
     return None
 
+def get_browser_geolocation():
+    """Get user's location using browser GPS (accurate)"""
+    # This is handled via JavaScript in the UI
+    # Streamlit doesn't support two-way binding, so we use session state
+    if 'browser_location' in st.session_state:
+        return st.session_state['browser_location']
+    return None
+
 st.set_page_config(
     page_title="Heat & Water Stress Tracker",
     page_icon="🌍",
@@ -108,8 +116,66 @@ if data_source == "Manual Input":
 else:
     st.header("📍 Location-based Weather Data")
 
-    # Warning for cloud deployment
-    st.error("⚠️ **On Streamlit Cloud**: IP detection shows the server location (Dallas, USA), not yours. Please use the **Popular Cities Dropdown** below for accurate results!")
+    # Browser GPS location detection
+    st.subheader("🎯 Get Your Current Location")
+
+    # JavaScript for browser geolocation
+    location_script = """
+    <div id="location-result"></div>
+    <script>
+    function getLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(showPosition, showError);
+        } else {
+            document.getElementById("location-result").innerHTML = "Geolocation is not supported by this browser.";
+        }
+    }
+
+    function showPosition(position) {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        document.getElementById("location-result").innerHTML =
+            '<div style="color: green; padding: 10px; background: #e8f5e9; border-radius: 5px; margin: 10px 0;">' +
+            '✅ Location detected: ' + lat.toFixed(4) + ', ' + lon.toFixed(4) + '<br>' +
+            '<small>Copy these coordinates to the fields below</small></div>';
+
+        // Auto-fill the input fields
+        const latInput = document.querySelector('input[aria-label="Latitude"]');
+        const lonInput = document.querySelector('input[aria-label="Longitude"]');
+        if (latInput) latInput.value = lat.toFixed(4);
+        if (lonInput) lonInput.value = lon.toFixed(4);
+
+        // Trigger change events
+        if (latInput) latInput.dispatchEvent(new Event('input', { bubbles: true }));
+        if (lonInput) lonInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    function showError(error) {
+        let message = "";
+        switch(error.code) {
+            case error.PERMISSION_DENIED:
+                message = "User denied the request for Geolocation.";
+                break;
+            case error.POSITION_UNAVAILABLE:
+                message = "Location information is unavailable.";
+                break;
+            case error.TIMEOUT:
+                message = "The request to get user location timed out.";
+                break;
+            default:
+                message = "An unknown error occurred.";
+        }
+        document.getElementById("location-result").innerHTML =
+            '<div style="color: red; padding: 10px; background: #ffebee; border-radius: 5px; margin: 10px 0;">' +
+            '❌ ' + message + '</div>';
+    }
+
+    // Auto-get location on load
+    setTimeout(getLocation, 1000);
+    </script>
+    """
+
+    st.components.v1.html(location_script, height=100)
 
     # Popular cities dropdown
     popular_cities = {
@@ -125,39 +191,13 @@ else:
         "Sydney, Australia": (-33.8688, 151.2093)
     }
 
-    selected_city = st.selectbox("🏙️ Quick Select Popular City (Recommended)", ["-- Select a city --"] + list(popular_cities.keys()))
+    selected_city = st.selectbox("🏙️ Or Select Popular City", ["-- Select a city --"] + list(popular_cities.keys()))
 
     if selected_city != "-- Select a city --":
         default_lat, default_lon = popular_cities[selected_city]
-        st.success(f"✅ Selected: {selected_city}")
     else:
         default_lat = 28.6139
         default_lon = 77.2090
-
-    # Auto-detect location button (with disclaimer)
-    st.subheader("Alternative: IP-based Detection")
-    col_detect, col_info = st.columns([2, 1])
-
-    with col_detect:
-        auto_detect = st.button("🎯 Auto-detect via IP (Approximate)", type="secondary")
-
-    with col_info:
-        st.info("⚠️ Not recommended on Cloud")
-
-    location_data = None
-
-    if auto_detect:
-        with st.spinner("Detecting your location via IP..."):
-            location_data = get_ip_geolocation()
-            if location_data:
-                method = location_data.get('method', 'IP-based')
-                st.error(f"⚠️ This shows the Streamlit Cloud server location (Dallas, USA), not yours!")
-                st.warning(f"Detected: {location_data.get('city', 'Unknown')}, {location_data.get('country', 'Unknown')}")
-                st.info("💡 Please use the Popular Cities Dropdown above for accurate results")
-                default_lat = location_data['lat'] or 28.6139
-                default_lon = location_data['lon'] or 77.2090
-            else:
-                st.warning("Could not auto-detect. Using default location.")
 
     col1, col2 = st.columns(2)
 
@@ -181,8 +221,6 @@ else:
     # Show location info
     if selected_city != "-- Select a city --":
         st.info(f"📍 Using selected city: {selected_city}")
-    elif auto_detect and location_data:
-        st.info(f"📍 Using IP-detected location: {location_data.get('city', 'Unknown')}, {location_data.get('country', 'Unknown')}")
 
 # Calculate button
 if st.button("🚀 Calculate Risk Score", type="primary", use_container_width=True):
