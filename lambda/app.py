@@ -1,52 +1,20 @@
 import json
 from weather_service import WeatherDataService
 from s3_service import S3DataService
-
-def calculate_heat_stress(temperature, humidity):
-    """Calculate heat stress index based on temperature and humidity"""
-    # Simplified heat index calculation
-    if temperature < 27:
-        return "Low"
-    elif temperature < 32:
-        if humidity > 60:
-            return "High"
-        return "Moderate"
-    else:
-        if humidity > 50:
-            return "Critical"
-        return "High"
-
-def calculate_water_stress(precipitation, water_usage):
-    """Calculate water stress based on precipitation and usage"""
-    # Water stress ratio
-    stress_ratio = water_usage / (precipitation + 1)
-    if stress_ratio < 0.5:
-        return "Low"
-    elif stress_ratio < 1.0:
-        return "Moderate"
-    elif stress_ratio < 2.0:
-        return "High"
-    return "Critical"
-
-def calculate_overall_risk(heat_stress, water_stress):
-    """Calculate overall environmental risk score (0-100)"""
-    stress_levels = {"Low": 1, "Moderate": 2, "High": 3, "Critical": 4}
-    heat_score = stress_levels.get(heat_stress, 2) * 25
-    water_score = stress_levels.get(water_stress, 2) * 25
-    return min(heat_score + water_score, 100)
+from risk_calculator import calculate_risk
 
 def generate_recommendations(heat_stress, water_stress, overall_risk):
     """Generate actionable recommendations based on stress levels"""
     recommendations = []
 
-    if heat_stress in ["High", "Critical"]:
+    if heat_stress in ["Medium", "Critical"]:
         recommendations.extend([
             "Implement heat warning systems",
             "Increase green spaces and shade",
             "Establish cooling centers"
         ])
 
-    if water_stress in ["High", "Critical"]:
+    if water_stress in ["Medium", "Critical"]:
         recommendations.extend([
             "Implement water conservation measures",
             "Invest in water recycling systems",
@@ -96,18 +64,15 @@ def lambda_handler(event, context):
             precipitation = body.get('precipitation', 100)
             water_usage = body.get('water_usage', 150)
 
-        # Calculate stress levels
-        heat_stress = calculate_heat_stress(temperature, humidity)
-        water_stress = calculate_water_stress(precipitation, water_usage)
-        overall_risk = calculate_overall_risk(heat_stress, water_stress)
-        recommendations = generate_recommendations(heat_stress, water_stress, overall_risk)
+        # Calculate stress levels and scores
+        risk = calculate_risk(temperature, humidity, precipitation, water_usage)
+        recommendations = generate_recommendations(
+            risk['heat_stress'], risk['water_stress'], risk['overall_risk_score']
+        )
 
         # Return results
         result_data = {
-            'heat_stress': heat_stress,
-            'water_stress': water_stress,
-            'overall_risk_score': overall_risk,
-            'risk_level': 'Critical' if overall_risk >= 75 else 'High' if overall_risk >= 50 else 'Moderate' if overall_risk >= 25 else 'Low',
+            **risk,
             'recommendations': recommendations,
             'input_data': {
                 'temperature': temperature,

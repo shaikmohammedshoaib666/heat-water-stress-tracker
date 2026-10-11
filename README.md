@@ -265,20 +265,17 @@ sam local start-api
 ## 📊 Risk Calculation Logic
 
 ### Heat Stress
-- **Low**: Temperature < 27°C
-- **Moderate**: Temperature 27-32°C, humidity < 60%
-- **High**: Temperature 27-32°C, humidity > 60% OR Temperature > 32°C, humidity < 50%
-- **Critical**: Temperature > 32°C, humidity > 50%
+- **Critical (100)**: Temperature > 35°C, or temperature > 30°C and humidity > 70%
+- **Medium (50)**: Temperature > 30°C, unless the critical condition applies
+- **Low (20)**: Otherwise
 
 ### Water Stress
-Based on water usage to precipitation ratio:
-- **Low**: Ratio < 0.5
-- **Moderate**: Ratio 0.5-1.0
-- **High**: Ratio 1.0-2.0
-- **Critical**: Ratio > 2.0
+- **Critical (100)**: Precipitation < 10 mm and water usage > 120 liters
+- **Medium (60)**: Precipitation < 20 mm or water usage > 100 liters, unless the critical condition applies
+- **Low (20)**: Otherwise
 
 ### Overall Risk Score
-- Combines heat and water stress (0-100 scale)
+- Integer average of the heat and water scores
 - Critical: ≥75
 - High: 50-74
 - Moderate: 25-49
